@@ -16,6 +16,7 @@
     "express": "^4.18.3",
     "mongodb": "^6.5.0",
     "mongoose": "^8.2.2",
-    "package": "^1.0.1"
+    "package": "^1.0.1",
+    "validator": "^13.11.0"
   }
 }
