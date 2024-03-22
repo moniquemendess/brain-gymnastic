@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const LogicSchema = {
+const LogicSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
@@ -13,18 +13,14 @@ const LogicSchema = {
     type: String,
     enum: ["Easy", "Medium", "Hard"],
   },
-  onwerResponse: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Results",
-      type: String,
-      required: true,
-    },
-  ],
+
   correctResponse: {
-    type: String,
-    trim: true,
+    type: String, // boolean?
   },
   ownerLiked: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   onwerComments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
-};
+});
+
+const Logic = mongoose.model("Logic", LogicSchema);
+
+module.exports = Logic;
