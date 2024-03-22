@@ -1,22 +1,17 @@
-const mongoose = require("mongoose");
-const validator = require("validator");
+//-------------------------------------(Importaciones)-------------------------------------------------------------
 
+const mongoose = require("mongoose");
+const findOrCreate = require("mongoose-findorcreate");
+// const passportLocalMongoose = require("passport-local-mongoose");
+//------------------------------------------------------------------------------------------------------------------
+
+//! En insomnia no aparece el email? pesquisar
+const Schema = mongoose.Schema;
 const UserSchema = new mongoose.Schema(
   {
-    userName: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-
-    email: {
-      type: String,
-      required: true,
-      validator: [validator.isEmail, "Email not valid"],
-      unique: true,
-      trim: true,
-    },
+    username: { type: String, unique: true },
+    googleId: { type: String, unique: true },
+    email: { type: String, unique: true },
     rol: {
       type: String,
       enum: ["admin", "user"],
@@ -24,16 +19,6 @@ const UserSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-    },
-    gender: {
-      type: String,
-      enum: ["Man", "Women", "Others"],
-      required: true,
-    },
-    password: {
-      type: String,
-      required: true,
-      validate: [validator.isStrongPassword],
     },
     userComments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     userResponse: [{ type: mongoose.Schema.Types.ObjectId, ref: "Results" }],
@@ -45,6 +30,12 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+//Agregamos find o create al schema
+UserSchema.plugin(findOrCreate);
+
 const User = mongoose.model("User", UserSchema);
+
+// //hasf y salt
+// UserSchema.plugin(passportLocalMongoose);
 
 module.exports = User;
