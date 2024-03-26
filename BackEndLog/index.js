@@ -71,8 +71,9 @@ passport.deserializeUser(function (user, cb) {
   });
 });
 
-//----------------------------------------(Rutas)------------------------------------------------------------------
+//----------------------------------------(Rutas Login Google)------------------------------------------------------------------
 
+// Ejemplo: http://localhost:8080//auth/google
 app.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile"] })
@@ -86,6 +87,17 @@ app.get(
     res.redirect("/secrets");
   }
 );
+//----------------------------------------(Rutas)------------------------------------------------------------------
+
+// Ejemplo: http://localhost:8080/api/v1/users/getAllUsers
+const UserRoutes = require("./src/api/routes/User.routes.js");
+app.use("/api/v1/users/", UserRoutes);
+
+const CommentRoutes = require("./src/api/routes/Comment.routes.js");
+app.use("/api/v1/comment/", CommentRoutes);
+
+const FeedLogic = require("./src/api/routes/FeedLogic.routes.js");
+app.use("/api/v1/feedLogic/", FeedLogic);
 
 //-----------------------------------(Configuración del servidor Express )----------------------------------------
 
