@@ -9,7 +9,7 @@ const findOrCreate = require("mongoose-findorcreate");
 const Schema = mongoose.Schema;
 const UserSchema = new mongoose.Schema(
   {
-    username: { type: String, unique: true },
+    username: { type: String },
     googleId: { type: String, unique: true },
     email: { type: String, unique: true },
     rol: {
@@ -20,6 +20,9 @@ const UserSchema = new mongoose.Schema(
     image: {
       type: String,
     },
+    logicFeedOwner: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "FeedLogic" },
+    ], // quien crea la logica en la page de (Feed Logic)
     userComments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     userResponse: [{ type: mongoose.Schema.Types.ObjectId, ref: "Results" }],
     userLikedComments: [
@@ -29,13 +32,10 @@ const UserSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+//------------------------------------------------------------------------------------------------------------------
 //Agregamos find o create al schema
 UserSchema.plugin(findOrCreate);
 
 const User = mongoose.model("User", UserSchema);
-
-// //hasf y salt
-// UserSchema.plugin(passportLocalMongoose);
 
 module.exports = User;
