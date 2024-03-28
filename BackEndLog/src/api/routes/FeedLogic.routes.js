@@ -9,12 +9,7 @@ const FeedRoutes = require("express").Router();
 
 //----------------------------------------(Rutas)-----------------------------------------------------------------------
 
-FeedRoutes.post(
-  "/createLogic",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  createLogic
-);
+FeedRoutes.post("/createLogic", createLogic),
+  // -----------------------------------(Exportaciones)-------------------------------------------------------------------
 
-// -----------------------------------(Exportaciones)-------------------------------------------------------------------
-
-module.exports = FeedRoutes;
+  (module.exports = FeedRoutes);

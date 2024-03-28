@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const session = require("express-session"); // Agregar express-session
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const { connect } = require("./src/utils/db");
 const User = require("./src/api/models/User.model.js");
@@ -48,7 +49,10 @@ passport.use(
     },
     function (accessToken, refreshToken, profile, cb) {
       User.findOrCreate(
-        { username: profile.displayName, googleId: profile.id },
+        {
+          username: profile.displayName,
+          googleId: profile.id,
+        },
         function (err, user) {
           return cb(err, user);
         }
@@ -70,13 +74,32 @@ passport.deserializeUser(function (user, cb) {
     return cb(null, user);
   });
 });
+//---------------------------------------(Llave secreta token jwt)--------------------------------------------------
 
-//----------------------------------------(Rutas Login Google)------------------------------------------------------------------
+const secretOrKey = process.env.SECRET_OR_KEY;
 
-// Ejemplo: http://localhost:8080//auth/google
+//----------------------------------------(Rutas Login Google)--------------------------------------------------------
+
+// Ejemplo: http://localhost:8080/auth/google
+
 app.get(
   "/auth/google",
-  passport.authenticate("google", { scope: ["profile"] })
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { session: false }),
+  (req, res) => {
+    // Dados do usuário autenticado retornado pelo Google
+    const user = req.user;
+
+    // Gerar o token JWT
+    const token = jwt.sign(user, secretOrKey);
+
+    // Enviar o token JWT como resposta
+    res.json({ token: token });
+  }
 );
 
 app.get(
@@ -90,6 +113,7 @@ app.get(
 //----------------------------------------(Rutas)------------------------------------------------------------------
 
 // Ejemplo: http://localhost:8080/api/v1/users/getAllUsers
+
 const UserRoutes = require("./src/api/routes/User.routes.js");
 app.use("/api/v1/users/", UserRoutes);
 
@@ -98,6 +122,14 @@ app.use("/api/v1/comment/", CommentRoutes);
 
 const FeedLogic = require("./src/api/routes/FeedLogic.routes.js");
 app.use("/api/v1/feedLogic/", FeedLogic);
+
+//-----------------------------------(cuando el servidor crachea metemos un 500 )----------------------------------------
+
+// app.use((error, req, res) => {
+//   return res
+//     .status(error.status || 500)
+//     .json(error.message || "unexpected error");
+// });
 
 //-----------------------------------(Configuración del servidor Express )----------------------------------------
 

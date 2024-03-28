@@ -13,8 +13,8 @@ const createLogic = async (req, res) => {
 
     // Criando o objeto lógica
     const logicData = {
-      content: req.body.content,
-      logicFeedOwner: req.user._id,
+      content: req.body?.content,
+      owner: req.user._id, // clave de model de datos feedLogic y para obtener el usuario u
     };
 
     // Criar nova instância de lógica
