@@ -1,10 +1,13 @@
 //-------------------------------------(Importaciones)-------------------------------------------------------------
 const express = require("express");
+const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
 const session = require("express-session"); // Agregar express-session
+
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const jwt = require("jsonwebtoken");
+
 const cors = require("cors");
 const { connect } = require("./src/utils/db");
 const User = require("./src/api/models/User.model.js");
@@ -12,6 +15,8 @@ const User = require("./src/api/models/User.model.js");
 //------------------------(Criación de servidor Express y configuración del middleware session )----------------------
 
 const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
   session({
@@ -95,7 +100,7 @@ app.get(
     const user = req.user;
 
     // Gerar o token JWT
-    const token = jwt.sign(user, secretOrKey);
+    const token = jwt.sign(user, process.env.SECRET_OR_KEY);
 
     // Enviar o token JWT como resposta
     res.json({ token: token });
@@ -110,6 +115,7 @@ app.get(
     res.redirect("/secrets");
   }
 );
+
 //----------------------------------------(Rutas)------------------------------------------------------------------
 
 // Ejemplo: http://localhost:8080/api/v1/users/getAllUsers
@@ -120,16 +126,8 @@ app.use("/api/v1/users/", UserRoutes);
 const CommentRoutes = require("./src/api/routes/Comment.routes.js");
 app.use("/api/v1/comment/", CommentRoutes);
 
-const FeedLogic = require("./src/api/routes/FeedLogic.routes.js");
-app.use("/api/v1/feedLogic/", FeedLogic);
-
-//-----------------------------------(cuando el servidor crachea metemos un 500 )----------------------------------------
-
-// app.use((error, req, res) => {
-//   return res
-//     .status(error.status || 500)
-//     .json(error.message || "unexpected error");
-// });
+const FeedLogicRoutes = require("./src/api/routes/FeedLogic.routes.js");
+app.use("/api/v1/feedLogic/", FeedLogicRoutes);
 
 //-----------------------------------(Configuración del servidor Express )----------------------------------------
 

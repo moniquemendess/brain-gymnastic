@@ -1,15 +1,25 @@
 //------------------------------------(Importaciones)------------------------------------------------------------------
-
-const { createLogic } = require("../controllers/FeedLogic.controllers");
-const passport = require("passport");
+const { verifyToken } = require("../../middleware/auth.middleware");
+const {
+  createFeedLogic,
+  getAllFeedLogic,
+} = require("../controllers/FeedLogic.controllers");
 
 //----------------------------(Configuración de la Rutas con Express)----------------------------------------------------
 
-const FeedRoutes = require("express").Router();
+const FeedLogicRoutes = require("express").Router();
 
 //----------------------------------------(Rutas)-----------------------------------------------------------------------
 
-FeedRoutes.post("/createLogic", createLogic),
-  // -----------------------------------(Exportaciones)-------------------------------------------------------------------
+FeedLogicRoutes.post("/createFeedLogic", verifyToken, createFeedLogic);
 
-  (module.exports = FeedRoutes);
+FeedLogicRoutes.get("/getAllFeedLogic", getAllFeedLogic);
+
+// FeedLogicRoutes.post(
+//   "/createFeedLogic",
+//   passport.authenticate("jwt", { session: false }),
+//   createFeedLogic
+// );
+// -----------------------------------(Exportaciones)-------------------------------------------------------------------
+
+module.exports = FeedLogicRoutes;

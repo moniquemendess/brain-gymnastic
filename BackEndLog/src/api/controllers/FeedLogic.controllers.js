@@ -5,42 +5,46 @@ const FeedLogic = require("../models/FeedLogic.model.js");
 
 //----------------------------------------(Create Logic)------------------------------------------------------------------------
 
-const createLogic = async (req, res) => {
+const createFeedLogic = async (req, res) => {
   try {
-    console.log("Iniciando criação da lógica...");
-    // Sincronizar índices de la logica
-    await FeedLogic.syncIndexes();
-
-    // Criando o objeto lógica
-    const logicData = {
-      content: req.body?.content,
-      owner: req.user._id, // clave de model de datos feedLogic y para obtener el usuario u
-    };
-
-    // Criar nova instância de lógica
-    const newLogic = new FeedLogic(logicData);
-
-    // Salvar a lógica no banco de dados
-    const savedLogic = await newLogic.save();
-
-    // Atualizar o usuário com o ID da lógica criada
-    await User.findByIdAndUpdate(req.user._id, {
-      $push: { logicFeedOwner: newLogic._id },
+    const feedLogic = new FeedLogic({
+      content: req.body.content,
+      owner: req.user._id,
     });
+    console.log(feedLogic);
+    // Aguarda hasta con el feedLogic es salvo en el banco de datos antes de continuar con la ejecución abajo de codigos
+    await feedLogic.save();
 
-    console.log("Usuário atualizado com o ID da nova lógica.");
+    // Recupera el documento populado con los detalles del usuario
+    const feedLogicPopulated = await FeedLogic.findById(feedLogic._id).populate(
+      "owner"
+    );
 
-    // Retornar os dados da lógica criada na resposta
-    return res.status(200).json(savedLogic);
-  } catch (error) {
-    console.error("Erro ao criar a lógica:", error);
-    return res.status(400).json({
-      error: "Error al crear la logica",
-      message: error.message,
+    // Atualize o array de feeds no objeto do usuário
+    const user = await User.findById(req.user._id);
+    user.feeds.push(feedLogic._id); // Adiciona o ID do feed ao array de feeds do usuário
+    await user.save(); // Salva as alterações no banco de dados
+
+    res.status(200).send({
+      message: "Logica creada con suceso!",
+      feedLogic: feedLogicPopulated,
     });
+  } catch (e) {
+    console.error(e);
+    res.status(500).send({ message: "Error al cargar la lógica" });
   }
 };
 
+//----------------------------------------(Get All Feed Logic)-------------------------------------------------------------------
+
+const getAllFeedLogic = async (req, res) => {
+  try {
+    const data = await FeedLogic.find({});
+    res.status(200).send(data);
+  } catch (e) {
+    res.status(500).send({ message: "Error al cargar las lógicas" });
+  }
+};
 //----------------------------------------(Exportaciones)------------------------------------------------------------------------
 
-module.exports = { createLogic };
+module.exports = { createFeedLogic, getAllFeedLogic };
