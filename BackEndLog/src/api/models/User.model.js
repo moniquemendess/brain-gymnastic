@@ -2,16 +2,22 @@
 
 const mongoose = require("mongoose");
 const findOrCreate = require("mongoose-findorcreate");
-// const passportLocalMongoose = require("passport-local-mongoose");
+
 //------------------------------------------------------------------------------------------------------------------
 
 //! En insomnia no aparece el email? pesquisar
 const Schema = mongoose.Schema;
+const validator = require("validator");
 const UserSchema = new mongoose.Schema(
   {
-    username: { type: String },
-    googleId: { type: String, unique: true },
-    email: { type: String, unique: true },
+    userName: { type: String },
+    email: { type: String },
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: [validator.isStrongPassword],
+    },
     rol: {
       type: String,
       enum: ["admin", "user"],

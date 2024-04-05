@@ -1,35 +1,30 @@
+
+//------------------------------------(Importaciones)------------------------------------------------------------------
 const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+dotenv.config();
 
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  //console.log("Encabezado de autorización:", authHeader);
+//------------------------------------(Chequear token)------------------------------------------------------------------
 
-  if (!authHeader) {
-    console.log("Token no proporcionado");
-    return res.status(401).json({ message: "Token no proporcionado" });
+const checktoken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // dividir las string en array y acender [1] el token
+
+  if (!token) {
+    return res.status(401).json({ message: "Aceso negado!" });
   }
-
-  // Separar la cadena del encabezado de autorización y obtener solo el token
-  const tokenParts = authHeader.split(" ");
-  const tokenValue = tokenParts[1]; // El token está en la segunda parte
-
-  console.log("secret", process.env.SECRET_OR_KEY);
-  console.log("soy la primera parte del token", tokenValue);
-
-  // Decodificar manualmente el token JWT
   try {
-    console.log("Antes de la verificación del token");
-    const decoded = jwt.verify(tokenValue, process.env.SECRET_OR_KEY);
-    console.log("Token decodificado:", decoded);
-    console.log("Después de la verificación del token");
-    console.log("secret", process.env.SECRET_OR_KEY);
-    console.log("soy la primera parte del token", tokenValue);
-    req.user = decoded;
+    const secret = process.env.SECRET_OR_KEY;
+    jwt.verify(token, secret);
     next();
   } catch (error) {
-    console.log("Error al decodificar el token:", error.message);
-    return res.status(401).json({ message: "Token inválido" });
+    res.status(400).json({ message: "token invalido!" });
   }
 };
 
-module.exports = { verifyToken };
+//------------------------------------(Exportaciones)------------------------------------------------------------------
+
+module.exports = {
+  checktoken,
+};
+

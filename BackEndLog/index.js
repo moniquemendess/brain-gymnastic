@@ -2,15 +2,15 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
-const session = require("express-session"); // Agregar express-session
 
-const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const jwt = require("jsonwebtoken");
+// const session = require("express-session"); // Agregar express-session
+
+// const passport = require("passport");
+// const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 const cors = require("cors");
 const { connect } = require("./src/utils/db");
-const User = require("./src/api/models/User.model.js");
+// const User = require("./src/api/models/User.model.js");
 
 //------------------------(Criación de servidor Express y configuración del middleware session )----------------------
 
@@ -18,18 +18,18 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(
-  session({
-    secret: "keyboard cat",
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+// app.use(
+//   session({
+//     secret: "keyboard cat",
+//     resave: false,
+//     saveUninitialized: true,
+//   })
+// );
 
-//-------------------------------------(Inicializar passport y session)---------------------------------------------
+// //-------------------------------------(Inicializar passport y session)---------------------------------------------
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 //--------------------------------(Configurar dotenv para poder utilizar las variables de entorno del .env)-------
 
@@ -44,77 +44,79 @@ connect();
 app.use(cors());
 
 //---------------------------------(Configuración autenticación de Google)------------------------------------------
+// passport.use(
+//   new GoogleStrategy(
+//     {
+//       clientID: process.env.CLIENT_ID,
+//       clientSecret: process.env.CLIENT_SECRET,
+//       callbackURL: "http://localhost:8080/auth/google/crear",
+//     },
+//     async function (accessToken, refreshToken, profile, cb) {
+//       try {
+//         // Encontre ou crie o usuário com base nos dados fornecidos pelo Google
+//         let user = await User.findOne({ googleId: profile.id });
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.CLIENT_ID,
-      clientSecret: process.env.CLIENT_SECRET,
-      callbackURL: "http://localhost:8080/auth/google/crear", // cuando el user esta autenticado se va p/ esta url
-    },
-    function (accessToken, refreshToken, profile, cb) {
-      User.findOrCreate(
-        {
-          username: profile.displayName,
-          googleId: profile.id,
-        },
-        function (err, user) {
-          return cb(err, user);
-        }
-      );
-    }
-  )
-);
+//         // Se o usuário não existir, crie um novo usuário com os dados fornecidos pelo Google
+//         if (!user) {
+//           user = new User({
+//             username: profile.displayName,
+//             googleId: profile.id,
+//           });
+//           await user.save();
+//         }
 
-//----------------(Serializar y deserializar usuarios (necesario para passport.authenticate (no modificar))------------
+//         // Chame a função cb com o usuário autenticado
+//         cb(null, user);
+//       } catch (error) {
+//         cb(error, null);
+//       }
+//     }
+//   )
+// );
 
-passport.serializeUser(function (user, cb) {
-  process.nextTick(function () {
-    cb(null, { id: user.id });
-  });
-});
+// //----------------(Serializar y deserializar usuarios (necesario para passport.authenticate (no modificar))------------
 
-passport.deserializeUser(function (user, cb) {
-  process.nextTick(function () {
-    return cb(null, user);
-  });
-});
-//---------------------------------------(Llave secreta token jwt)--------------------------------------------------
+// passport.serializeUser(function (user, cb) {
+//   process.nextTick(function () {
+//     cb(null, { id: user.id });
+//   });
+// });
 
-const secretOrKey = process.env.SECRET_OR_KEY;
+// passport.deserializeUser(function (user, cb) {
+//   process.nextTick(function () {
+//     return cb(null, user);
+//   });
+// });
 
 //----------------------------------------(Rutas Login Google)--------------------------------------------------------
 
-// Ejemplo: http://localhost:8080/auth/google
+// // Ejemplo: http://localhost:8080/auth/google
 
-app.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
+// app.get(
+//   "/auth/google",
+//   passport.authenticate("google", { scope: ["profile", "email"] })
+// );
 
-app.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { session: false }),
-  (req, res) => {
-    // Dados do usuário autenticado retornado pelo Google
-    const user = req.user;
+// app.get(
+//   "/auth/google/callback",
+//   passport.authenticate("google"),
+//   (req, res) => {
+//     // Dados do usuário autenticado retornado pelo Google
+//     const user = req.user;
 
-    // Gerar o token JWT
-    const token = jwt.sign(user, process.env.SECRET_OR_KEY);
+//     // Enviar o token JWT como resposta
+//     res.json({ token: user.token });
+//   }
+// );
 
-    // Enviar o token JWT como resposta
-    res.json({ token: token });
-  }
-);
-
-app.get(
-  "/auth/google/crear",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  function (req, res) {
-    // adelante configurar para cuando hacer login navegar p/otra page (cambiar el "/secrets")
-    res.redirect("/secrets");
-  }
-);
+// app.get(
+//   "/auth/google/crear",
+//   passport.authenticate("google", { failureRedirect: "/login" }),
+//   function (req, res) {
+//     // adelante configurar para cuando hacer login navegar p/otra page (cambiar el "/secrets")
+//     res.redirect("/secrets");
+//   }
+// );
 
 //----------------------------------------(Rutas)------------------------------------------------------------------
 
