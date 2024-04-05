@@ -1,3 +1,4 @@
+
 //------------------------------------(Importaciones)------------------------------------------------------------------
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
@@ -26,3 +27,4 @@ const checktoken = (req, res, next) => {
 module.exports = {
   checktoken,
 };
+
