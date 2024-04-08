@@ -46,6 +46,19 @@ const getAllFeedLogic = async (req, res) => {
     res.status(500).send({ message: "Error al cargar las lógicas" });
   }
 };
+
+//----------------------------------------(Get by id Feed Logic)-------------------------------------------------------------------
+
+const getByIdFeedLogic = async (req, res) => {
+  try {
+    const { id } = req.params; // id de la logica por params
+    const byIdFeedLogic = await FeedLogic.findById(id);
+    res.status(200).json(byIdFeedLogic);
+  } catch (error) {
+    res.status(404).json({ message: "Logica no encontrada" });
+  }
+};
+
 //----------------------------------------(Exportaciones)------------------------------------------------------------------------
 
-module.exports = { createFeedLogic, getAllFeedLogic };
+module.exports = { createFeedLogic, getAllFeedLogic, getByIdFeedLogic };
