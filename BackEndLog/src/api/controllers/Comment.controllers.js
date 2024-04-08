@@ -76,7 +76,49 @@ const getByIdComment = async (req, res) => {
     res.status(404).json({ menssage: "Comentario no encontrado" });
   }
 };
+//----------------------------------------(Delete Comment)------------------------------------------------------------------------
+
+const deleteComment = async (req, res, next) => {
+  try {
+    const { idComment } = req.params; // Obtener el ID del comentario de los parámetros de la ruta
+    const commentOwner = req.user._id; // Obtener el ID del usuario autenticado
+
+    const comment = await Comment.findById(idComment); // Encontrar el comentario en la base de datos
+
+    // Verificar si el comentario existe y si el usuario autenticado es el propietario del comentario
+    if (!comment || !comment.owner.equals(commentOwner)) {
+      return res.status(404).json({
+        error: "El comentario no existe o no tienes permiso para eliminarlo",
+      });
+    }
+
+    // Eliminar el comentario
+    await Comment.findByIdAndDelete(idComment);
+
+    // Actualizar las referencias en otros modelos de datos si es necesario
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { userComments: idComment } },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: "Comentario eliminado correctamente",
+      user: updatedUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: "Error al eliminar el comentario",
+      message: error.message,
+    });
+  }
+};
 
 //----------------------------------------(Exportaciones)------------------------------------------------------------------------
 
-module.exports = { createComments, getAllComments, getByIdComment };
+module.exports = {
+  createComments,
+  getAllComments,
+  getByIdComment,
+  deleteComment,
+};
