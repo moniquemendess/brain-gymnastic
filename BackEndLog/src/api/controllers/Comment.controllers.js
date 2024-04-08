@@ -8,7 +8,7 @@ const Comment = require("../models/Comment.model.js");
 
 const createComments = async (req, res, next) => {
   try {
-    // Verificar se o usuário está autenticado
+    // Verificar si el usuario esta autenticado
     if (!req.user) {
       return res.status(401).json({ error: "Usuario no autenticado" });
     }
@@ -31,7 +31,7 @@ const createComments = async (req, res, next) => {
             $push: { userComments: newComment._id }, // clave de model de datos User
           });
           await User.findByIdAndUpdate(req.user._id, {
-            // actualiza la coleccion con el user autenticado con on el id del comentario
+            // actualiza la coleccion con el user autenticado con el id del comentario
             $push: { userComments: newComment._id }, // clave de model de datos User
           });
           return res.status(200).json({
@@ -41,7 +41,7 @@ const createComments = async (req, res, next) => {
           });
         } catch (error) {
           res.status(404).json({
-            error: "Error actualizando la noticia y el usuario",
+            error: "Error al actualizar la pagina de feedlogic y el usuario",
             message: error.message,
           }) && next(error);
         }
@@ -49,12 +49,12 @@ const createComments = async (req, res, next) => {
     }
   } catch (error) {
     res.status(404).json({
-      error: "Error general al crear comentario en logic",
+      error: "Error general al crear comentario",
       message: error.message,
     }) && next(error);
   }
 };
-//----------------------------------------(Get by All)------------------------------------------------------------------------
+//----------------------------------------(Get all Comments)------------------------------------------------------------------------
 
 const getAllComments = async (req, res) => {
   try {
