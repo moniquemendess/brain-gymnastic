@@ -12,7 +12,7 @@ const FeedLogicSchema = new mongoose.Schema(
     },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     ownerLiked: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    onwerComments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
   },
   { timestamps: true }
 );

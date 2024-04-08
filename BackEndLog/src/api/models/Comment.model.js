@@ -15,6 +15,11 @@ const CommentSchema = new mongoose.Schema(
 
     recipientLogic: { type: mongoose.Schema.Types.ObjectId, ref: "Logic" },
 
+    recipientFeedLogic: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "FeedLogic",
+    },
+
     likes: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
