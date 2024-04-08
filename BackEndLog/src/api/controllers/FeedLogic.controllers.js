@@ -7,11 +7,12 @@ const FeedLogic = require("../models/FeedLogic.model.js");
 
 const createFeedLogic = async (req, res) => {
   try {
+    console.log("Usuario:", req.user);
     const feedLogic = new FeedLogic({
       content: req.body.content,
       owner: req.user._id,
     });
-    console.log(feedLogic);
+
     // Aguarda hasta con el feedLogic es salvo en el banco de datos antes de continuar con la ejecución abajo de codigos
     await feedLogic.save();
 
@@ -22,7 +23,7 @@ const createFeedLogic = async (req, res) => {
 
     // Atualize o array de feeds no objeto do usuário
     const user = await User.findById(req.user._id);
-    user.feeds.push(feedLogic._id); // Adiciona o ID do feed ao array de feeds do usuário
+    user.logicFeedOwner.push(feedLogic._id); // Adiciona o ID do logicFeedOwner al array de usuario
     await user.save(); // Salva as alterações no banco de dados
 
     res.status(200).send({

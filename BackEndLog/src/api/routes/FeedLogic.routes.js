@@ -1,6 +1,5 @@
 //------------------------------------(Importaciones)------------------------------------------------------------------
 
-
 const { checktoken } = require("../../middleware/auth.middleware");
 const {
   createFeedLogic,
@@ -13,19 +12,12 @@ const FeedLogicRoutes = require("express").Router();
 
 //----------------------------------------(Rutas)-----------------------------------------------------------------------
 
-
 FeedLogicRoutes.get("/getAllFeedLogic", getAllFeedLogic);
 
 //---------------------------------------(Rutas Privadas)--------------------------------------------------------------
 
 FeedLogicRoutes.post("/createFeedLogic", checktoken, createFeedLogic);
 
-
-// FeedLogicRoutes.post(
-//   "/createFeedLogic",
-//   passport.authenticate("jwt", { session: false }),
-//   createFeedLogic
-// );
 // -----------------------------------(Exportaciones)-------------------------------------------------------------------
 
 module.exports = FeedLogicRoutes;
