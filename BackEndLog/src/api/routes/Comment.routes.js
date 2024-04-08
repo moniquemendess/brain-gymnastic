@@ -1,7 +1,12 @@
 //------------------------------------(Importaciones)------------------------------------------------------------------
 
-const { createComments } = require("../controllers/Comment.controllers");
-const passport = require("passport"); // Corrected import statement
+const { checktoken } = require("../../middleware/auth.middleware");
+const {
+  createComments,
+  getAllComments,
+  getByIdComment,
+  deleteComment,
+} = require("../controllers/Comment.controllers");
 
 //----------------------------(Configuración de la Rutas con Express)----------------------------------------------------
 
@@ -9,11 +14,15 @@ const CommentRoutes = require("express").Router();
 
 //----------------------------------------(Rutas)-----------------------------------------------------------------------
 
-CommentRoutes.post(
-  "/createComments/:idRecipient",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  createComments
-);
+//localhost:8080/api/v1/comment
+
+CommentRoutes.get("/allComments", getAllComments);
+CommentRoutes.get("/idComments/:id", getByIdComment);
+
+//----------------------------------------(Rutas Privadas)-----------------------------------------------------------------------
+
+CommentRoutes.post("/createComments/:idRecipient", checktoken, createComments);
+CommentRoutes.delete("/deleteComment/:idComment", checktoken, deleteComment);
 
 // -----------------------------------(Exportaciones)-------------------------------------------------------------------
 
