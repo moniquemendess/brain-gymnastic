@@ -13,8 +13,8 @@ const createComments = async (req, res, next) => {
       return res.status(401).json({ error: "Usuario no autenticado" });
     }
 
-    const { idRecipient } = req.params; // id del comentario por params
-    const findLogic = await FeedLogic.findById(idRecipient); //busca el id armazenado en la variable idRecipient
+    const { idRecipient } = req.params; // id la logica por params
+    const findLogic = await FeedLogic.findById(idRecipient); //busca el id de la logica armazenado en la variable idRecipient
 
     // creacion de nueva estancia de comentario
     if (findLogic) {
@@ -65,6 +65,18 @@ const getAllComments = async (req, res) => {
   }
 };
 
+//----------------------------------------(Get by ID)------------------------------------------------------------------------
+
+const getByIdComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const byIdComment = await Comment.findById(id);
+    res.status(200).json(byIdComment);
+  } catch (error) {
+    res.status(404).json({ menssage: "Comentario no encontrado" });
+  }
+};
+
 //----------------------------------------(Exportaciones)------------------------------------------------------------------------
 
-module.exports = { createComments, getAllComments };
+module.exports = { createComments, getAllComments, getByIdComment };
