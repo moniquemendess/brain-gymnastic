@@ -54,7 +54,17 @@ const createComments = async (req, res, next) => {
     }) && next(error);
   }
 };
+//----------------------------------------(Get by All)------------------------------------------------------------------------
+
+const getAllComments = async (req, res) => {
+  try {
+    const allComments = await Comment.find({});
+    res.status(200).json(allComments);
+  } catch (error) {
+    res.status(404).json({ menssage: "Error al cargar todos los comentarios" });
+  }
+};
 
 //----------------------------------------(Exportaciones)------------------------------------------------------------------------
 
-module.exports = { createComments };
+module.exports = { createComments, getAllComments };
