@@ -75,7 +75,58 @@ const getByIdComment = async (req, res) => {
   } catch (error) {
     res.status(404).json({ menssage: "Comentario no encontrado" });
   }
+}; //----------------------------------------(like Comment)------------------------------------------------------------------------
+
+const likeComment = async (req, res, next) => {
+  try {
+    const { idComment } = req.params; // id do comentário a ser curtido ou descurtido por parâmetros
+    const { _id, userLikedComments } = req.user;
+
+    if (userLikedComments.includes(idComment)) {
+      try {
+        await User.findByIdAndUpdate(_id, {
+          $pull: { userLikedComments: idComment },
+        });
+        await Comment.findByIdAndUpdate(idComment, {
+          $pull: { likes: _id },
+        });
+        return res.status(200).json({
+          user: await User.findById(_id),
+          comment: await Comment.findById(idComment).populate("likes"),
+        });
+      } catch (error) {
+        return res.status(404).json({
+          error: "Error al actualizar el like",
+          message: error.message,
+        });
+      }
+    } else {
+      try {
+        await User.findByIdAndUpdate(_id, {
+          $push: { userLikedComments: idComment },
+        });
+        await Comment.findByIdAndUpdate(idComment, {
+          $push: { likes: _id },
+        });
+        return res.status(200).json({
+          user: await User.findById(_id),
+          comment: await Comment.findById(idComment).populate("likes"),
+        });
+      } catch (error) {
+        return res.status(404).json({
+          error: "Error al actualizar el like del usuario",
+          message: error.message,
+        });
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({
+      error: "Error general",
+      message: error.message,
+    });
+  }
 };
+
 //----------------------------------------(Delete Comment)------------------------------------------------------------------------
 
 const deleteComment = async (req, res, next) => {
@@ -120,5 +171,6 @@ module.exports = {
   createComments,
   getAllComments,
   getByIdComment,
+  likeComment,
   deleteComment,
 };

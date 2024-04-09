@@ -20,10 +20,12 @@ const CommentSchema = new mongoose.Schema(
       ref: "FeedLogic",
     },
 
-    likes: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );
