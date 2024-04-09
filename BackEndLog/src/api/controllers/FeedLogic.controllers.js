@@ -69,25 +69,36 @@ const deleteFeedLogic = async (req, res, next) => {
 
     const feedLogic = await FeedLogic.findById(id); // Encontrar la logica en la base de datos para continuar ...
 
-    // si no tienes logica o si el usuario autententicado no es el owner de la logica de feed
+    // Si no tienes logica o si el usuario autententicado no es el owner de la logica de feed
     if (!feedLogic || !feedLogic.owner.equals(feedOnwer)) {
       return res.status(404).json({
         message: "La logica no existe o no tienes permiso para eliminarlo",
       });
     }
 
+    const commentIds = []; // Se crea un array vacío para encontrar posteriormente los comentarios hechos en la page feedlogic
+
+    /* Se buscan todos los comentarios que viven en ese page, para que luego(.then) usando la response, se recorran todos 
+    ellos. Finalmente se añaden los ids de esos commentarios a la lista de array vacía (commentIds) */
+    await Comment.find({ recipientFeedLogic: id }).then((res) => {
+      res.forEach((comment) => {
+        commentIds.push(comment._id);
+      });
+    });
+
     // Actualizar las referencias en otros modelos de datos si es necesario
     await User.updateMany(
       { logicFeedOwner: id },
       { $pull: { logicFeedOwner: id } }
     );
-    await Comment.updateMany(
-      { recipientFeedLogic: id },
-      { $pull: { recipientFeedLogic: id } }
-    );
 
     // Eliminar todos los comentarios en la logica
     await Comment.deleteMany({ recipientFeedLogic: id });
+
+    await User.updateMany(
+      {}, // Objecto vacío para realizar la operación en todos los usuarios
+      { $pull: { userComments: { $in: commentIds } } }
+    );
 
     // Eliminar la logica
     await FeedLogic.findByIdAndDelete(id);
