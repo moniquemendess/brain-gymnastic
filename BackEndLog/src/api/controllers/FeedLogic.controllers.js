@@ -2,6 +2,7 @@
 
 const User = require("../models/User.model.js");
 const FeedLogic = require("../models/FeedLogic.model.js");
+const Comment = require("../models/Comment.model.js");
 
 //----------------------------------------(Create Logic)------------------------------------------------------------------------
 
@@ -59,6 +60,54 @@ const getByIdFeedLogic = async (req, res) => {
   }
 };
 
+//----------------------------------------(Delete Feed Logic)-------------------------------------------------------------------
+
+const deleteFeedLogic = async (req, res, next) => {
+  try {
+    const { id } = req.params; // Obtener el ID del la logica a ser eliminada
+    const feedOnwer = req.user._id; // Obtener el ID del usuario autenticado
+
+    const feedLogic = await FeedLogic.findById(id); // Encontrar la logica en la base de datos para continuar ...
+
+    // si no tienes logica o si el usuario autententicado no es el owner de la logica de feed
+    if (!feedLogic || !feedLogic.owner.equals(feedOnwer)) {
+      return res.status(404).json({
+        message: "La logica no existe o no tienes permiso para eliminarlo",
+      });
+    }
+
+    // Actualizar las referencias en otros modelos de datos si es necesario
+    await User.updateMany(
+      { logicFeedOwner: id },
+      { $pull: { logicFeedOwner: id } }
+    );
+    await Comment.updateMany(
+      { recipientFeedLogic: id },
+      { $pull: { recipientFeedLogic: id } }
+    );
+
+    // Eliminar todos los comentarios en la logica
+    await Comment.deleteMany({ recipientFeedLogic: id });
+
+    // Eliminar la logica
+    await FeedLogic.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: "Logica eliminada correctamente",
+      user: req.user._id,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: "Error al eliminar la logica",
+      message: error.message,
+    });
+  }
+};
 //----------------------------------------(Exportaciones)------------------------------------------------------------------------
 
-module.exports = { createFeedLogic, getAllFeedLogic, getByIdFeedLogic };
+module.exports = {
+  createFeedLogic,
+  getAllFeedLogic,
+  getByIdFeedLogic,
+  deleteFeedLogic,
+};

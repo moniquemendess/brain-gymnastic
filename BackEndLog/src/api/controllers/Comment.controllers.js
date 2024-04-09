@@ -28,7 +28,7 @@ const createComments = async (req, res, next) => {
         try {
           await FeedLogic.findByIdAndUpdate(idRecipient, {
             //actualiza la coleccion FeedLogic con el id del comentario
-            $push: { userComments: newComment._id }, // clave de model de datos User
+            $push: { comments: newComment._id }, // clave de model de datos Comment
           });
           await User.findByIdAndUpdate(req.user._id, {
             // actualiza la coleccion con el user autenticado con el id del comentario
@@ -92,15 +92,15 @@ const deleteComment = async (req, res, next) => {
       });
     }
 
-    // Eliminar el comentario
-    await Comment.findByIdAndDelete(idComment);
-
     // Actualizar las referencias en otros modelos de datos si es necesario
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       { $pull: { userComments: idComment } },
       { new: true }
     );
+
+    // Eliminar el comentario
+    await Comment.findByIdAndDelete(idComment);
 
     return res.status(200).json({
       message: "Comentario eliminado correctamente",
