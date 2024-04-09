@@ -75,7 +75,7 @@ const getByIdComment = async (req, res) => {
   } catch (error) {
     res.status(404).json({ menssage: "Comentario no encontrado" });
   }
-}; //----------------------------------------(like Comment)------------------------------------------------------------------------
+}; //-------------------------(Funciones auxilares (Update User LikedComments))-------------------------------------------------------------------
 
 // Función updateUserLikedComments es responsable por actualizar a lista de comentarios curtidos
 // por el usuario en la base de datos.
@@ -91,6 +91,8 @@ const updateUserLikedComments = async (_id, idComment, push = true) => {
   }
 };
 
+//-----------------------------(Funciones auxilares (Update Comment Likes))------------------------------------------------------------------------
+
 // Función updateCommentLikes es responsable por actualizar la lista de usuarios que curtiran
 // un determinado comentario en la base de datos.
 
@@ -104,6 +106,9 @@ const updateCommentLikes = async (idComment, _id, push = true) => {
     throw new Error("Error updating comment's likes");
   }
 };
+
+//--------------------------------------(like Comment)-----------------------------------------------------------------------------------------------
+
 // Funcón likeComment es la logica de curtir y descurtir un comentario
 const likeComment = async (req, res, next) => {
   try {
