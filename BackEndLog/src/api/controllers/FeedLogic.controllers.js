@@ -2,6 +2,7 @@
 
 const User = require("../models/User.model.js");
 const FeedLogic = require("../models/FeedLogic.model.js");
+const Comment = require("../models/Comment.model.js");
 
 //----------------------------------------(Create Logic)------------------------------------------------------------------------
 
@@ -46,6 +47,78 @@ const getAllFeedLogic = async (req, res) => {
     res.status(500).send({ message: "Error al cargar las lógicas" });
   }
 };
+
+//----------------------------------------(Get by id Feed Logic)-------------------------------------------------------------------
+
+const getByIdFeedLogic = async (req, res) => {
+  try {
+    const { id } = req.params; // id de la logica por params
+    const byIdFeedLogic = await FeedLogic.findById(id);
+    res.status(200).json(byIdFeedLogic);
+  } catch (error) {
+    res.status(404).json({ message: "Logica no encontrada" });
+  }
+};
+
+//----------------------------------------(Delete Feed Logic)-------------------------------------------------------------------
+
+const deleteFeedLogic = async (req, res, next) => {
+  try {
+    const { id } = req.params; // Obtener el ID del la logica a ser eliminada
+    const feedOnwer = req.user._id; // Obtener el ID del usuario autenticado
+
+    const feedLogic = await FeedLogic.findById(id); // Encontrar la logica en la base de datos para continuar ...
+
+    // Si no tienes logica o si el usuario autententicado no es el owner de la logica de feed
+    if (!feedLogic || !feedLogic.owner.equals(feedOnwer)) {
+      return res.status(404).json({
+        message: "La logica no existe o no tienes permiso para eliminarlo",
+      });
+    }
+
+    const commentIds = []; // Se crea un array vacío para encontrar posteriormente los comentarios hechos en la page feedlogic
+
+    /* Se buscan todos los comentarios que viven en ese page, para que luego(.then) usando la response, se recorran todos 
+    ellos. Finalmente se añaden los ids de esos commentarios a la lista de array vacía (commentIds) */
+    await Comment.find({ recipientFeedLogic: id }).then((res) => {
+      res.forEach((comment) => {
+        commentIds.push(comment._id);
+      });
+    });
+
+    // Actualizar las referencias en otros modelos de datos si es necesario
+    await User.updateMany(
+      { logicFeedOwner: id },
+      { $pull: { logicFeedOwner: id } }
+    );
+
+    // Eliminar todos los comentarios en la logica
+    await Comment.deleteMany({ recipientFeedLogic: id });
+
+    await User.updateMany(
+      {}, // Objecto vacío para realizar la operación en todos los usuarios
+      { $pull: { userComments: { $in: commentIds } } }
+    );
+
+    // Eliminar la logica
+    await FeedLogic.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: "Logica eliminada correctamente",
+      user: req.user._id,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: "Error al eliminar la logica",
+      message: error.message,
+    });
+  }
+};
 //----------------------------------------(Exportaciones)------------------------------------------------------------------------
 
-module.exports = { createFeedLogic, getAllFeedLogic };
+module.exports = {
+  createFeedLogic,
+  getAllFeedLogic,
+  getByIdFeedLogic,
+  deleteFeedLogic,
+};
