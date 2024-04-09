@@ -158,7 +158,14 @@ const deleteComment = async (req, res, next) => {
       { $pull: { userComments: idComment } },
       { new: true }
     );
+    await User.updateMany(
+      { $or: [{ likes: idComment }, { userLikedComments: idComment }] },
+      { $pull: { likes: idComment, userLikedComments: idComment } }
+    );
 
+    await FeedLogic.updateMany({
+      $pull: { comments: idComment },
+    });
     // Eliminar el comentario
     await Comment.findByIdAndDelete(idComment);
 
