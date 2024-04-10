@@ -155,6 +155,10 @@ const deleteFeedLogic = async (req, res, next) => {
       {}, // Objecto vacío para realizar la operación en todos los usuarios
       { $pull: { userComments: { $in: commentIds } } }
     );
+    await User.updateMany(
+      { $or: [{ likes: id }, { userLikedFeedLogic: id }] },
+      { $pull: { likes: id, userLikedFeedLogic: id } }
+    );
 
     // Eliminar la logica
     await FeedLogic.findByIdAndDelete(id);
