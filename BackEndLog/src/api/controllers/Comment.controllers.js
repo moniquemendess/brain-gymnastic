@@ -87,7 +87,9 @@ const updateUserLikedComments = async (_id, idComment, push = true) => {
       : { $pull: { userLikedComments: idComment } };
     await User.findByIdAndUpdate(_id, updateOperation);
   } catch (error) {
-    throw new Error("Error updating user's liked comments");
+    throw new Error(
+      "Error al actualizar los comentarios que le gustan al usuario"
+    );
   }
 };
 
@@ -103,7 +105,7 @@ const updateCommentLikes = async (idComment, _id, push = true) => {
       : { $pull: { likes: _id } };
     await Comment.findByIdAndUpdate(idComment, updateOperation);
   } catch (error) {
-    throw new Error("Error updating comment's likes");
+    throw new Error("Error al actualizar los 'me gusta' del comentario");
   }
 };
 
