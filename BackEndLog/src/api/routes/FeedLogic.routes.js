@@ -8,7 +8,7 @@ const {
   deleteFeedLogic,
   LikedFeed,
 } = require("../controllers/FeedLogic.controllers");
-
+const { upload } = require("../../middleware/files.middleware");
 //----------------------------(Configuración de la Rutas con Express)----------------------------------------------------
 
 const FeedLogicRoutes = require("express").Router();
@@ -22,7 +22,12 @@ FeedLogicRoutes.get("/idFeedLogic/:id", getByIdFeedLogic);
 
 //---------------------------------------(Rutas Privadas)--------------------------------------------------------------
 
-FeedLogicRoutes.post("/createFeedLogic", checktoken, createFeedLogic);
+FeedLogicRoutes.post(
+  "/createFeedLogic",
+  upload.single("image"),
+  checktoken,
+  createFeedLogic
+);
 FeedLogicRoutes.delete("/deleteFeed/:id", checktoken, deleteFeedLogic);
 FeedLogicRoutes.patch("/likedFeed/:idFeed", checktoken, LikedFeed);
 

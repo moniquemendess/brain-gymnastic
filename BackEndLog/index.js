@@ -12,6 +12,8 @@ const cors = require("cors");
 const { connect } = require("./src/utils/db");
 // const User = require("./src/api/models/User.model.js");
 
+const files = require("./src/middleware/files.middleware.js");
+
 //------------------------(Criación de servidor Express y configuración del middleware session )----------------------
 
 const app = express();
@@ -38,6 +40,10 @@ dotenv.config();
 //--------------------------------(Creamos la conexión con la BD (base de datos))---------------------------------
 
 connect();
+
+//---------------------------------(Configuración de Cloudinary para gestión de img)------------------------------------
+
+files.configCloudinary();
 
 //---------------------------------(Permite solicitudes desde cualquier origen)------------------------------------
 
