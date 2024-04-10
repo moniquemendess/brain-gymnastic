@@ -18,7 +18,7 @@ const LogicSchema = new mongoose.Schema({
     type: String, // boolean?
   },
   ownerLiked: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  onwerComments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
 });
 
 const Logic = mongoose.model("Logic", LogicSchema);

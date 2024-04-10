@@ -75,7 +75,69 @@ const getByIdComment = async (req, res) => {
   } catch (error) {
     res.status(404).json({ menssage: "Comentario no encontrado" });
   }
+}; //-------------------------(Funciones auxilares (Update User LikedComments))-------------------------------------------------------------------
+
+// Función updateUserLikedComments es responsable por actualizar a lista de comentarios curtidos
+// por el usuario en la base de datos.
+
+const updateUserLikedComments = async (_id, idComment, push = true) => {
+  try {
+    const updateOperation = push
+      ? { $push: { userLikedComments: idComment } }
+      : { $pull: { userLikedComments: idComment } };
+    await User.findByIdAndUpdate(_id, updateOperation);
+  } catch (error) {
+    throw new Error(
+      "Error al actualizar los comentarios que le gustan al usuario"
+    );
+  }
 };
+
+//-----------------------------(Funciones auxilares (Update Comment Likes))------------------------------------------------------------------------
+
+// Función updateCommentLikes es responsable por actualizar la lista de usuarios que curtiran
+// un determinado comentario en la base de datos.
+
+const updateCommentLikes = async (idComment, _id, push = true) => {
+  try {
+    const updateOperation = push
+      ? { $push: { likes: _id } }
+      : { $pull: { likes: _id } };
+    await Comment.findByIdAndUpdate(idComment, updateOperation);
+  } catch (error) {
+    throw new Error("Error al actualizar los 'me gusta' del comentario");
+  }
+};
+
+//--------------------------------------(like Comment)-----------------------------------------------------------------------------------------------
+
+// Funcón likeComment es la logica de curtir y descurtir un comentario
+const likeComment = async (req, res, next) => {
+  try {
+    const { idComment } = req.params;
+    const { _id, userLikedComments } = req.user;
+
+    const isLiked = userLikedComments.includes(idComment);
+
+    if (isLiked) {
+      await updateUserLikedComments(_id, idComment, false);
+      await updateCommentLikes(idComment, _id, false);
+    } else {
+      await updateUserLikedComments(_id, idComment);
+      await updateCommentLikes(idComment, _id);
+    }
+
+    const user = await User.findById(_id);
+    const comment = await Comment.findById(idComment).populate("likes");
+
+    return res.status(200).json({ user, comment });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Error general", message: error.message });
+  }
+};
+
 //----------------------------------------(Delete Comment)------------------------------------------------------------------------
 
 const deleteComment = async (req, res, next) => {
@@ -98,7 +160,14 @@ const deleteComment = async (req, res, next) => {
       { $pull: { userComments: idComment } },
       { new: true }
     );
+    await User.updateMany(
+      { $or: [{ likes: idComment }, { userLikedComments: idComment }] },
+      { $pull: { likes: idComment, userLikedComments: idComment } }
+    );
 
+    await FeedLogic.updateMany({
+      $pull: { comments: idComment },
+    });
     // Eliminar el comentario
     await Comment.findByIdAndDelete(idComment);
 
@@ -120,5 +189,6 @@ module.exports = {
   createComments,
   getAllComments,
   getByIdComment,
+  likeComment,
   deleteComment,
 };

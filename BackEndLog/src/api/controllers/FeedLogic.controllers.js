@@ -59,6 +59,62 @@ const getByIdFeedLogic = async (req, res) => {
     res.status(404).json({ message: "Logica no encontrada" });
   }
 };
+//----------------------------------------(Funciones auxiliares (Update User LikeFeedLogic))----------------------------------------------------------------
+
+// Función updateUserLikedFeed es responsable por actualizar a lista de feed curtidos
+
+const updateUserLikedFeed = async (_id, idFeed, push = true) => {
+  try {
+    const updateOperation = push
+      ? { $push: { userLikedFeedLogic: idFeed } }
+      : { $pull: { userLikedFeedLogic: idFeed } };
+
+    await User.findByIdAndUpdate(_id, updateOperation);
+  } catch (error) {
+    throw new Error("Error al actualizar los feed que le gustan al usuario");
+  }
+};
+//----------------------------------------(Funciones auxiliares (Update Liked Feed))----------------------------------------------------------------
+
+// Función updateUserLikedFeed es responsable por actualizar a lista de usuarios que curtiran el feed
+
+const updateLikedFeed = async (idFeed, _id, push = true) => {
+  try {
+    const updateOperation = push
+      ? { $push: { likes: _id } }
+      : { $pull: { likes: _id } };
+
+    await FeedLogic.findByIdAndUpdate(idFeed, updateOperation);
+  } catch (error) {
+    throw new Error("Error al actualizar los 'me gusta' del feed");
+  }
+};
+//----------------------------------------(Liked Feed)----------------------------------------------------------------
+
+const LikedFeed = async (req, res, next) => {
+  try {
+    const { idFeed } = req.params; // id del feed
+    const { _id, userLikedFeedLogic } = req.user;
+
+    const isLiked = userLikedFeedLogic.includes(idFeed);
+    if (isLiked) {
+      await updateUserLikedFeed(_id, idFeed, false);
+      await updateLikedFeed(idFeed, _id, false);
+    } else {
+      await updateUserLikedFeed(_id, idFeed);
+      await updateLikedFeed(idFeed, _id);
+    }
+
+    const user = await User.findById(_id);
+    const feedLogic = await FeedLogic.findById(idFeed).populate("likes");
+
+    return res.status(200).json({ message: user });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Error general", message: error.message });
+  }
+};
 
 //----------------------------------------(Delete Feed Logic)-------------------------------------------------------------------
 
@@ -99,6 +155,10 @@ const deleteFeedLogic = async (req, res, next) => {
       {}, // Objecto vacío para realizar la operación en todos los usuarios
       { $pull: { userComments: { $in: commentIds } } }
     );
+    await User.updateMany(
+      { $or: [{ likes: id }, { userLikedFeedLogic: id }] },
+      { $pull: { likes: id, userLikedFeedLogic: id } }
+    );
 
     // Eliminar la logica
     await FeedLogic.findByIdAndDelete(id);
@@ -120,5 +180,6 @@ module.exports = {
   createFeedLogic,
   getAllFeedLogic,
   getByIdFeedLogic,
+  LikedFeed,
   deleteFeedLogic,
 };

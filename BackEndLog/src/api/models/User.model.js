@@ -35,6 +35,9 @@ const UserSchema = new mongoose.Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: "Comment" },
     ],
     userLikedLogic: [{ type: mongoose.Schema.Types.ObjectId, ref: "Logic" }],
+    userLikedFeedLogic: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "feedLogic" },
+    ],
   },
   { timestamps: true }
 );

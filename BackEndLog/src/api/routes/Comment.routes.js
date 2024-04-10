@@ -6,6 +6,7 @@ const {
   getAllComments,
   getByIdComment,
   deleteComment,
+  likeComment,
 } = require("../controllers/Comment.controllers");
 
 //----------------------------(Configuración de la Rutas con Express)----------------------------------------------------
@@ -23,6 +24,7 @@ CommentRoutes.get("/idComments/:id", getByIdComment);
 
 CommentRoutes.post("/createComments/:idRecipient", checktoken, createComments);
 CommentRoutes.delete("/deleteComment/:idComment", checktoken, deleteComment);
+CommentRoutes.patch("/likeComment/:idComment", checktoken, likeComment);
 
 // -----------------------------------(Exportaciones)-------------------------------------------------------------------
 

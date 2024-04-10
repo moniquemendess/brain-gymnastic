@@ -11,7 +11,7 @@ const FeedLogicSchema = new mongoose.Schema(
       type: String,
     },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    ownerLiked: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
   },
   { timestamps: true }
