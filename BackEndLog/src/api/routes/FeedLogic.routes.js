@@ -6,6 +6,7 @@ const {
   getAllFeedLogic,
   getByIdFeedLogic,
   deleteFeedLogic,
+  LikedFeed,
 } = require("../controllers/FeedLogic.controllers");
 
 //----------------------------(Configuración de la Rutas con Express)----------------------------------------------------
@@ -23,6 +24,7 @@ FeedLogicRoutes.get("/idFeedLogic/:id", getByIdFeedLogic);
 
 FeedLogicRoutes.post("/createFeedLogic", checktoken, createFeedLogic);
 FeedLogicRoutes.delete("/deleteFeed/:id", checktoken, deleteFeedLogic);
+FeedLogicRoutes.patch("/likedFeed/:idFeed", checktoken, LikedFeed);
 
 // -----------------------------------(Exportaciones)-------------------------------------------------------------------
 
