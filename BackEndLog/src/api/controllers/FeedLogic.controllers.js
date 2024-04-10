@@ -8,32 +8,37 @@ const Comment = require("../models/Comment.model.js");
 
 const createFeedLogic = async (req, res) => {
   try {
-    console.log("Usuario:", req.user);
-    const feedLogic = new FeedLogic({
-      content: req.body.content,
+    const processedText = req.body.content.replace(/\r\n|\r|\n/g, "<br>");
+
+    const customBody = {
+      content: processedText,
       owner: req.user._id,
-    });
+    };
 
-    // Aguarda hasta con el feedLogic es salvo en el banco de datos antes de continuar con la ejecución abajo de codigos
-    await feedLogic.save();
+    const newFeed = new FeedLogic(customBody);
 
-    // Recupera el documento populado con los detalles del usuario
-    const feedLogicPopulated = await FeedLogic.findById(feedLogic._id).populate(
+    // Verifica se uma imagem foi enviada com a solicitação
+    if (req.file) {
+      newFeed.image = req.file.path;
+    }
+
+    await newFeed.save();
+
+    const feedLogicPopulated = await FeedLogic.findById(newFeed._id).populate(
       "owner"
     );
 
-    // Atualize o array de feeds no objeto do usuário
     const user = await User.findById(req.user._id);
-    user.logicFeedOwner.push(feedLogic._id); // Adiciona o ID do logicFeedOwner al array de usuario
-    await user.save(); // Salva as alterações no banco de dados
+    user.logicFeedOwner.push(newFeed._id);
+    await user.save();
 
     res.status(200).send({
-      message: "Logica creada con suceso!",
+      message: "¡Lógica creada con éxito!",
       feedLogic: feedLogicPopulated,
     });
-  } catch (e) {
-    console.error(e);
-    res.status(500).send({ message: "Error al cargar la lógica" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Error al crear la lógica de feed" });
   }
 };
 
