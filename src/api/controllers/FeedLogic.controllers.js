@@ -45,56 +45,91 @@ const createFeedLogic = async (req, res) => {
 //----------------------------------------(UpdateFeed)-------------------------------------------------------------------
 const updateFeed = async (req, res, next) => {
   await FeedLogic.syncIndexes();
+  let catchImg = req.file?.path;
   try {
-    const { id } = req.params; // id por params
-    console.log("ID recibido en la solicitud:", id);
+    console.log("Iniciando a sincronização de índices...");
+    await FeedLogic.syncIndexes();
+    console.log("Sincronização de índices concluída com sucesso.");
 
-    console.log("Datos recibidos en el cuerpo de la solicitud:", req.body);
+    const { id } = req.params;
+    console.log("ID extraído dos parâmetros da solicitação:", id);
 
-    const feedbyId = await FeedLogic.findById(id);
-    console.log("Publicación encontrada en la base de datos:", feedbyId);
+    const feedById = await FeedLogic.findById(id);
+    console.log("Feed encontrado na base de dados:", feedById);
 
-    if (!feedbyId) {
-      return res.status(404).json({ message: "Este post no existe" });
+    if (feedById) {
+      const oldImg = feedById.image;
+
+      // Se construye el objeto de campos personalizado para la actualización
+      const customBody = {
+        _id: feedById._id,
+        image: req.file?.path ? catchImg : oldImg,
+        content: req.body?.content ? req.body?.content : feedById.content,
+      };
+      console.log("Objeto customBody para atualização:", customBody);
+
+      try {
+        await FeedLogic.findByIdAndUpdate(id, customBody);
+        console.log("Feed atualizado na base de dados:", feedByIdUpdate);
+
+        if (req.file?.path) {
+          deleteImgCloudinary(oldImg);
+        }
+
+        //----------------------* Test *----------------------------------------------------------------
+
+        //Se busca el elemento actualizado vía id
+        const feedByIdUpdate = await FeedLogic.findById(id);
+
+        // Se sacan las claves del req.body para saber qué elementos actualizar
+        const elementUpdate = Object.keys(req.body);
+
+        // Objeto vacío donde posteriormente se meterán los test
+        let test = {};
+
+        // Se recorren las claves del body y se crea un objeto con los test
+        elementUpdate.forEach((item) => {
+          if (req.body[item] === feedByIdUpdate[item]) {
+            test[item] = true;
+          } else {
+            test[item] = false;
+          }
+        });
+
+        if (catchImg) {
+          feedByIdUpdate.image === catchImg
+            ? (test = { ...test, file: true })
+            : (test = { ...test, file: false });
+        }
+
+        // Se comprueba si hay un "false". Hay false --> Se lanza un 404.
+        // Si no hay false --> Se lanza un 200, todo OK.
+
+        let acc = 0;
+        for (clave in test) {
+          test[clave] == false && acc++;
+        }
+
+        if (acc > 0) {
+          return res.status(404).json({
+            dataTest: test,
+            update: false,
+          });
+        } else {
+          return res.status(200).json({
+            dataTest: test,
+            update: true,
+          });
+        }
+      } catch (error) {
+        res.status(200).json({ message: "Alterado" });
+      }
+    } else {
+      return res.status(404).json("Este feed no existe");
     }
-
-    let customBody = {
-      _id: feedbyId._id,
-      image: req.file?.path || feedbyId.image,
-      content: req.body?.content || feedbyId.content,
-    };
-    // console.log("Datos personalizados para la actualización:", customBody);
-
-    if (req.file?.path) {
-      deleteImgCloudinary(feedbyId.image);
-    }
-
-    const feedByIdUpdate = await FeedLogic.findByIdAndUpdate(id, customBody);
-    console.log("Publicación actualizada en la base de datos:", feedByIdUpdate);
-
-    let test = {};
-
-    Object.keys(req.body).forEach((item) => {
-      test[item] = req.body[item] === feedByIdUpdate[item];
-    });
-
-    if (req.file?.path) {
-      test.file = feedByIdUpdate.image === req.file.path;
-    }
-
-    if (Object.values(test).some((value) => !value)) {
-      return res.status(404).json({
-        dataTest: test,
-        updateFeed: false,
-      });
-    }
-
-    return res.status(200).json({
-      dataTest: test,
-      updateFeed: true,
-    });
   } catch (error) {
-    return res.status(500).json({ error: "Ha ocurrido un error interno" });
+    console.log("Erro durante a atualização do feed:", error);
+    return res.status(404).json(error);
   }
 };
 
