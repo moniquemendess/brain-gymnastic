@@ -7,6 +7,7 @@ const {
   getByIdFeedLogic,
   deleteFeedLogic,
   LikedFeed,
+  updateFeed,
 } = require("../controllers/FeedLogic.controllers");
 const { upload } = require("../../middleware/files.middleware");
 //----------------------------(Configuración de la Rutas con Express)----------------------------------------------------
@@ -30,6 +31,7 @@ FeedLogicRoutes.post(
 );
 FeedLogicRoutes.delete("/deleteFeed/:id", checktoken, deleteFeedLogic);
 FeedLogicRoutes.patch("/likedFeed/:idFeed", checktoken, LikedFeed);
+FeedLogicRoutes.patch("/update/:id", checktoken, updateFeed);
 
 // -----------------------------------(Exportaciones)-------------------------------------------------------------------
 

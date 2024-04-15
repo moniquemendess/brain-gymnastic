@@ -3,6 +3,7 @@
 const User = require("../models/User.model.js");
 const FeedLogic = require("../models/FeedLogic.model.js");
 const Comment = require("../models/Comment.model.js");
+const { deleteImgCloudinary } = require("../../middleware/files.middleware.js");
 
 //----------------------------------------(Create Logic)------------------------------------------------------------------------
 
@@ -39,6 +40,61 @@ const createFeedLogic = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: "Error al crear la lógica de feed" });
+  }
+};
+//----------------------------------------(UpdateFeed)-------------------------------------------------------------------
+const updateFeed = async (req, res, next) => {
+  await FeedLogic.syncIndexes();
+  try {
+    const { id } = req.params; // id por params
+    console.log("ID recibido en la solicitud:", id);
+
+    console.log("Datos recibidos en el cuerpo de la solicitud:", req.body);
+
+    const feedbyId = await FeedLogic.findById(id);
+    console.log("Publicación encontrada en la base de datos:", feedbyId);
+
+    if (!feedbyId) {
+      return res.status(404).json({ message: "Este post no existe" });
+    }
+
+    let customBody = {
+      _id: feedbyId._id,
+      image: req.file?.path || feedbyId.image,
+      content: req.body?.content || feedbyId.content,
+    };
+    // console.log("Datos personalizados para la actualización:", customBody);
+
+    if (req.file?.path) {
+      deleteImgCloudinary(feedbyId.image);
+    }
+
+    const feedByIdUpdate = await FeedLogic.findByIdAndUpdate(id, customBody);
+    console.log("Publicación actualizada en la base de datos:", feedByIdUpdate);
+
+    let test = {};
+
+    Object.keys(req.body).forEach((item) => {
+      test[item] = req.body[item] === feedByIdUpdate[item];
+    });
+
+    if (req.file?.path) {
+      test.file = feedByIdUpdate.image === req.file.path;
+    }
+
+    if (Object.values(test).some((value) => !value)) {
+      return res.status(404).json({
+        dataTest: test,
+        updateFeed: false,
+      });
+    }
+
+    return res.status(200).json({
+      dataTest: test,
+      updateFeed: true,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "Ha ocurrido un error interno" });
   }
 };
 
@@ -183,6 +239,7 @@ const deleteFeedLogic = async (req, res, next) => {
 
 module.exports = {
   createFeedLogic,
+  updateFeed,
   getAllFeedLogic,
   getByIdFeedLogic,
   LikedFeed,
