@@ -44,92 +44,59 @@ const createFeedLogic = async (req, res) => {
 };
 //----------------------------------------(UpdateFeed)-------------------------------------------------------------------
 const updateFeed = async (req, res, next) => {
-  await FeedLogic.syncIndexes();
-  let catchImg = req.file?.path;
   try {
-    console.log("Iniciando a sincronização de índices...");
+    // Sincronización de índices
     await FeedLogic.syncIndexes();
-    console.log("Sincronização de índices concluída com sucesso.");
 
+    // Extracción del ID de los parámetros de la solicitud
     const { id } = req.params;
-    console.log("ID extraído dos parâmetros da solicitação:", id);
 
+    // Búsqueda del feed por ID
     const feedById = await FeedLogic.findById(id);
-    console.log("Feed encontrado na base de dados:", feedById);
 
     if (feedById) {
-      const oldImg = feedById.image;
+      // Guarda la ruta de la nueva imagen si existe
+      const newImagePath = req.file?.path;
 
-      // Se construye el objeto de campos personalizado para la actualización
+      // Construcción del objeto de campos personalizado para la actualización
       const customBody = {
-        _id: feedById._id,
-        image: req.file?.path ? catchImg : oldImg,
-        content: req.body?.content ? req.body?.content : feedById.content,
+        image: newImagePath || feedById.image,
+        content: req.body?.content || feedById.content,
       };
-      console.log("Objeto customBody para atualização:", customBody);
+      console.log("Datos en el cuerpo de la solicitud:", req.body);
 
-      try {
-        await FeedLogic.findByIdAndUpdate(id, customBody);
-        console.log("Feed atualizado na base de dados:", feedByIdUpdate);
+      // Actualización del feed en la base de datos
+      const updatedFeed = await FeedLogic.findByIdAndUpdate(id, customBody);
 
-        if (req.file?.path) {
-          deleteImgCloudinary(oldImg);
-        }
-
-        //----------------------* Test *----------------------------------------------------------------
-
-        //Se busca el elemento actualizado vía id
-        const feedByIdUpdate = await FeedLogic.findById(id);
-
-        // Se sacan las claves del req.body para saber qué elementos actualizar
-        const elementUpdate = Object.keys(req.body);
-
-        // Objeto vacío donde posteriormente se meterán los test
-        let test = {};
-
-        // Se recorren las claves del body y se crea un objeto con los test
-        elementUpdate.forEach((item) => {
-          if (req.body[item] === feedByIdUpdate[item]) {
-            test[item] = true;
-          } else {
-            test[item] = false;
-          }
-        });
-
-        if (catchImg) {
-          feedByIdUpdate.image === catchImg
-            ? (test = { ...test, file: true })
-            : (test = { ...test, file: false });
-        }
-
-        // Se comprueba si hay un "false". Hay false --> Se lanza un 404.
-        // Si no hay false --> Se lanza un 200, todo OK.
-
-        let acc = 0;
-        for (clave in test) {
-          test[clave] == false && acc++;
-        }
-
-        if (acc > 0) {
-          return res.status(404).json({
-            dataTest: test,
-            update: false,
-          });
-        } else {
-          return res.status(200).json({
-            dataTest: test,
-            update: true,
-          });
-        }
-      } catch (error) {
-        res.status(200).json({ message: "Alterado" });
+      // Eliminación de la imagen anterior si se ha subido una nueva
+      if (newImagePath) {
+        deleteImgCloudinary(feedById.image);
       }
+
+      // Comprobación de los cambios realizados y preparación de la respuesta
+      const changes = {};
+      for (const key in customBody) {
+        changes[key] = customBody[key] === feedById[key];
+      }
+      changes.file = !newImagePath || updatedFeed.image === newImagePath;
+
+      // Verificación de si se realizaron cambios
+      const updateStatus = Object.values(changes).every((value) => value);
+      const statusCode = updateStatus ? 200 : 404;
+
+      // Respuesta con el estado de la actualización y los datos de prueba
+      return res.status(statusCode).json({
+        dataTest: changes,
+        update: updateStatus,
+      });
     } else {
       return res.status(404).json("Este feed no existe");
     }
   } catch (error) {
     console.log("Erro durante a atualização do feed:", error);
-    return res.status(404).json(error);
+    return res
+      .status(500)
+      .json({ message: "Ocorreu um erro durante a atualização do feed" });
   }
 };
 
