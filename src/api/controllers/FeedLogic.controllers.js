@@ -54,46 +54,45 @@ const updateFeed = async (req, res, next) => {
     // Búsqueda del feed por ID
     const feedById = await FeedLogic.findById(id);
 
-    if (feedById) {
-      // Guarda la ruta de la nueva imagen si existe
-      const newImagePath = req.file?.path;
-
-      // Construcción del objeto de campos personalizado para la actualización
-      const customBody = {
-        image: newImagePath || feedById.image,
-        content: req.body?.content || feedById.content,
-      };
-      console.log("Datos en el cuerpo de la solicitud:", req.body);
-
-      // Actualización del feed en la base de datos
-      const updatedFeed = await FeedLogic.findByIdAndUpdate(id, customBody);
-
-      // Eliminación de la imagen anterior si se ha subido una nueva
-      if (newImagePath) {
-        deleteImgCloudinary(feedById.image);
-      }
-
-      // Comprobación de los cambios realizados y preparación de la respuesta
-      const changes = {};
-      for (const key in customBody) {
-        changes[key] = customBody[key] === feedById[key];
-      }
-      changes.file = !newImagePath || updatedFeed.image === newImagePath;
-
-      // Verificación de si se realizaron cambios
-      const updateStatus = Object.values(changes).every((value) => value);
-      const statusCode = updateStatus ? 200 : 404;
-
-      // Respuesta con el estado de la actualización y los datos de prueba
-      return res.status(statusCode).json({
-        dataTest: changes,
-        update: updateStatus,
-      });
-    } else {
+    if (!feedById) {
       return res.status(404).json("Este feed no existe");
     }
+
+    // Guarda la ruta de la nueva imagen si existe
+    const newImagePath = req.file?.path;
+
+    // Construcción del objeto de campos personalizado para la actualización
+    const customBody = {
+      image: newImagePath || feedById.image,
+      content: req.body?.content || feedById.content,
+    };
+
+    // Actualización del feed en la base de datos
+    const updatedFeed = await feedById.set(customBody).save();
+
+    // Eliminación de la imagen anterior si se ha subido una nueva
+    if (newImagePath) {
+      deleteImgCloudinary(feedById.image);
+    }
+
+    // Comprobación de los cambios realizados y preparación de la respuesta
+    const changes = {};
+    for (const key in customBody) {
+      changes[key] = customBody[key] === feedById[key];
+    }
+    changes.file = !newImagePath || updatedFeed.image === newImagePath;
+
+    // Verificación de si se realizaron cambios
+    const update = Object.fromEntries(
+      Object.entries(customBody).filter(([k, v]) => v)
+    );
+
+    // Respuesta con el estado de la actualización y los datos de prueba
+    res.status(200).json({
+      update,
+      changes,
+    });
   } catch (error) {
-    console.log("Erro durante a atualização do feed:", error);
     return res
       .status(500)
       .json({ message: "Ocorreu um erro durante a atualização do feed" });
