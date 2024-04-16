@@ -45,9 +45,6 @@ const createFeedLogic = async (req, res) => {
 //----------------------------------------(UpdateFeed)-------------------------------------------------------------------
 const updateFeed = async (req, res, next) => {
   try {
-    // Sincronización de índices
-    await FeedLogic.syncIndexes();
-
     // Extracción del ID de los parámetros de la solicitud
     const { id } = req.params;
 
