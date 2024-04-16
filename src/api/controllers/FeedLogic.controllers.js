@@ -44,57 +44,59 @@ const createFeedLogic = async (req, res) => {
 };
 //----------------------------------------(UpdateFeed)-------------------------------------------------------------------
 const updateFeed = async (req, res, next) => {
-  await FeedLogic.syncIndexes();
   try {
-    const { id } = req.params; // id por params
-    console.log("ID recibido en la solicitud:", id);
+    // Sincronización de índices
+    await FeedLogic.syncIndexes();
 
-    console.log("Datos recibidos en el cuerpo de la solicitud:", req.body);
+    // Extracción del ID de los parámetros de la solicitud
+    const { id } = req.params;
 
-    const feedbyId = await FeedLogic.findById(id);
-    console.log("Publicación encontrada en la base de datos:", feedbyId);
+    // Búsqueda del feed por ID
+    const feedById = await FeedLogic.findById(id);
 
-    if (!feedbyId) {
-      return res.status(404).json({ message: "Este post no existe" });
-    }
+    if (feedById) {
+      // Guarda la ruta de la nueva imagen si existe
+      const newImagePath = req.file?.path;
 
-    let customBody = {
-      _id: feedbyId._id,
-      image: req.file?.path || feedbyId.image,
-      content: req.body?.content || feedbyId.content,
-    };
-    // console.log("Datos personalizados para la actualización:", customBody);
+      // Construcción del objeto de campos personalizado para la actualización
+      const customBody = {
+        image: newImagePath || feedById.image,
+        content: req.body?.content || feedById.content,
+      };
+      console.log("Datos en el cuerpo de la solicitud:", req.body);
 
-    if (req.file?.path) {
-      deleteImgCloudinary(feedbyId.image);
-    }
+      // Actualización del feed en la base de datos
+      const updatedFeed = await FeedLogic.findByIdAndUpdate(id, customBody);
 
-    const feedByIdUpdate = await FeedLogic.findByIdAndUpdate(id, customBody);
-    console.log("Publicación actualizada en la base de datos:", feedByIdUpdate);
+      // Eliminación de la imagen anterior si se ha subido una nueva
+      if (newImagePath) {
+        deleteImgCloudinary(feedById.image);
+      }
 
-    let test = {};
+      // Comprobación de los cambios realizados y preparación de la respuesta
+      const changes = {};
+      for (const key in customBody) {
+        changes[key] = customBody[key] === feedById[key];
+      }
+      changes.file = !newImagePath || updatedFeed.image === newImagePath;
 
-    Object.keys(req.body).forEach((item) => {
-      test[item] = req.body[item] === feedByIdUpdate[item];
-    });
+      // Verificación de si se realizaron cambios
+      const updateStatus = Object.values(changes).every((value) => value);
+      const statusCode = updateStatus ? 200 : 404;
 
-    if (req.file?.path) {
-      test.file = feedByIdUpdate.image === req.file.path;
-    }
-
-    if (Object.values(test).some((value) => !value)) {
-      return res.status(404).json({
-        dataTest: test,
-        updateFeed: false,
+      // Respuesta con el estado de la actualización y los datos de prueba
+      return res.status(statusCode).json({
+        dataTest: changes,
+        update: updateStatus,
       });
+    } else {
+      return res.status(404).json("Este feed no existe");
     }
-
-    return res.status(200).json({
-      dataTest: test,
-      updateFeed: true,
-    });
   } catch (error) {
-    return res.status(500).json({ error: "Ha ocurrido un error interno" });
+    console.log("Erro durante a atualização do feed:", error);
+    return res
+      .status(500)
+      .json({ message: "Ocorreu um erro durante a atualização do feed" });
   }
 };
 
