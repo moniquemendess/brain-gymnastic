@@ -43,6 +43,12 @@ app.use("/api/v1/comment/", CommentRoutes);
 const FeedLogicRoutes = require("./src/api/routes/FeedLogic.routes.js");
 app.use("/api/v1/feedLogic/", FeedLogicRoutes);
 
+const DayLogicRoutes = require("./src/api/routes/DayLogic.routes.js");
+app.use("/api/v1/dayLogic/", DayLogicRoutes);
+
+const EnigmaRoutes = require("./src/api/routes/Enigma.routes.js");
+app.use("/api/v1/enigma/", EnigmaRoutes);
+
 //-----------------------------------(Configuración del servidor Express )----------------------------------------
 
 const PORT = process.env.PORT || 8080;

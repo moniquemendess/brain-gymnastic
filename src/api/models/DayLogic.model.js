@@ -10,14 +10,12 @@ const DayLogicSchema = new mongoose.Schema(
     image: {
       type: String,
     },
-    difficulty: {
-      type: String,
-      enum: ["Easy", "Medium", "Hard"],
+    enigma: {
+      // Adicionando referência ao enigma
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Enigma", // Nome do modelo de enigma
     },
 
-    correctResponse: {
-      type: String, // boolean?
-    },
     owner: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
