@@ -5,7 +5,6 @@ const findOrCreate = require("mongoose-findorcreate");
 
 //------------------------------------------------------------------------------------------------------------------
 
-//! En insomnia no aparece el email? pesquisar
 const Schema = mongoose.Schema;
 const validator = require("validator");
 const UserSchema = new mongoose.Schema(
@@ -34,7 +33,7 @@ const UserSchema = new mongoose.Schema(
     userLikedComments: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Comment" },
     ],
-    userLikedLogic: [{ type: mongoose.Schema.Types.ObjectId, ref: "Logic" }],
+    userLikedLogic: [{ type: mongoose.Schema.Types.ObjectId, ref: "DayLogic" }],
     userLikedFeedLogic: [
       { type: mongoose.Schema.Types.ObjectId, ref: "feedLogic" },
     ],
