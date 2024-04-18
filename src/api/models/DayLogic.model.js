@@ -2,14 +2,6 @@ const mongoose = require("mongoose");
 
 const DayLogicSchema = new mongoose.Schema(
   {
-    content: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    image: {
-      type: String,
-    },
     enigma: {
       // Adicionando referência ao enigma
       type: mongoose.Schema.Types.ObjectId,
