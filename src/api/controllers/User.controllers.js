@@ -2,7 +2,7 @@
 
 const User = require("../models/User.model.js");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const { generateToken } = require("../../middleware/auth.middleware.js");
 
 //----------------------------------------(Registro User)------------------------------------------------------------------------
 
@@ -71,17 +71,11 @@ const login = async (req, res) => {
   }
   // Gerar token
   try {
-    const secret = process.env.SECRET_OR_KEY;
-    const token = jwt.sign(
-      {
-        id: user._id,
-      },
-      secret
-    );
+    const token = generateToken(user._id);
     console.log("Token gerado:", token);
     res
       .status(200)
-      .json({ message: "Autentificacion realizada con exito", token });
+      .json({ message: "Autentificación realizada con éxito", token });
   } catch (error) {
     return res.status(500).json({ message: error });
   }
