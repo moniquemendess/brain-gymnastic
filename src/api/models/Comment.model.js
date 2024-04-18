@@ -13,7 +13,7 @@ const CommentSchema = new mongoose.Schema(
       required: true,
     },
 
-    recipientLogic: { type: mongoose.Schema.Types.ObjectId, ref: "Logic" },
+    recipientEnigma: { type: mongoose.Schema.Types.ObjectId, ref: "Enigma" },
 
     recipientFeedLogic: {
       type: mongoose.Schema.Types.ObjectId,

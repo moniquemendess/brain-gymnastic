@@ -22,7 +22,8 @@ CommentRoutes.get("/idComments/:id", getByIdComment);
 
 //----------------------------------------(Rutas Privadas)-----------------------------------------------------------------------
 
-CommentRoutes.post("/createComments/:idRecipient", checktoken, createComments);
+CommentRoutes.post("/createComments/:id", checktoken, createComments);
+
 CommentRoutes.delete("/deleteComment/:idComment", checktoken, deleteComment);
 CommentRoutes.patch("/likeComment/:idComment", checktoken, likeComment);
 

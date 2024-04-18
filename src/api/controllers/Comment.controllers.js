@@ -3,57 +3,126 @@
 const User = require("../models/User.model.js");
 const FeedLogic = require("../models/FeedLogic.model.js");
 const Comment = require("../models/Comment.model.js");
+const Enigma = require("../models/Enigma.model.js");
 
-//----------------------------------------(Create Comments)------------------------------------------------------------------------
+//----------------------------------------(Funciones auxiliares de Create Comments)------------------------------------------------------------------------
+
+const createRecipientComment = async (req, res, userId, recipientId) => {
+  const findRecipient = await FeedLogic.findById(recipientId);
+
+  if (!findRecipient) {
+    throw new Error("Recipient no encontrado");
+  }
+
+  const newComment = new Comment({
+    ...req.body,
+    owner: userId,
+    recipientFeedLogic: findRecipient._id,
+  });
+
+  const saveComment = await newComment.save();
+
+  if (!saveComment) {
+    throw new Error("Error al guardar el comentario");
+  }
+
+  await Promise.all([
+    FeedLogic.findByIdAndUpdate(recipientId, {
+      $push: { comments: saveComment._id },
+    }),
+    User.findByIdAndUpdate(userId, {
+      $push: { userComments: saveComment._id },
+    }),
+  ]);
+
+  return saveComment;
+};
+//----------------------------------------(Funciones auxiliares de Create Comments)------------------------------------------------------------------------
+
+const createEnigmaComment = async (req, res, userId, enigmaId) => {
+  const findEnigma = await Enigma.findById(enigmaId);
+
+  if (!findEnigma) {
+    throw new Error("Enigma no encontrado");
+  }
+
+  const newComment = new Comment({
+    ...req.body,
+    owner: userId,
+    recipientEnigma: findEnigma._id,
+  });
+
+  const saveComment = await newComment.save();
+
+  if (!saveComment) {
+    throw new Error("Error al guardar el comentario");
+  }
+
+  await Promise.all([
+    Enigma.findByIdAndUpdate(enigmaId, {
+      $push: { comments: saveComment._id },
+    }),
+    User.findByIdAndUpdate(userId, {
+      $push: { userComments: saveComment._id },
+    }),
+  ]);
+
+  return saveComment;
+};
+//--------------------------------------------(Create Comments)------------------------------------------------------------------------
 
 const createComments = async (req, res, next) => {
   try {
-    // Verificar si el usuario esta autenticado
+    // Verificar si el usuario está autenticado
     if (!req.user) {
       return res.status(401).json({ error: "Usuario no autenticado" });
     }
 
-    const { idRecipient } = req.params; // id la logica por params
-    const findLogic = await FeedLogic.findById(idRecipient); //busca el id de la logica armazenado en la variable idRecipient
+    const { id } = req.params;
 
-    // creacion de nueva estancia de comentario
+    // Verificar si el ID corresponde a un recipient o a un enigma
+    const [findLogic, findEnigma] = await Promise.all([
+      FeedLogic.findById(id),
+      Enigma.findById(id),
+    ]);
+
+    // Si se encontró un recipient
     if (findLogic) {
-      const newComment = new Comment({
-        ...req.body,
-        owner: req.user._id, // clave de model de datos comment
-        recipientFeedLogic: findLogic, // clave de model de datos comment
+      const saveComment = await createRecipientComment(
+        req,
+        res,
+        req.user._id,
+        id
+      );
+
+      // Devolver la respuesta con el comentario creado y el usuario actualizado
+      return res.status(200).json({
+        create: true,
+        saveComment,
+        user: await User.findById(req.user._id),
       });
-      const saveComment = await newComment.save(); // salvar el comentario en banco de datos
-      if (saveComment) {
-        try {
-          await FeedLogic.findByIdAndUpdate(idRecipient, {
-            //actualiza la coleccion FeedLogic con el id del comentario
-            $push: { comments: newComment._id }, // clave de model de datos Comment
-          });
-          await User.findByIdAndUpdate(req.user._id, {
-            // actualiza la coleccion con el user autenticado con el id del comentario
-            $push: { userComments: newComment._id }, // clave de model de datos User
-          });
-          return res.status(200).json({
-            create: true,
-            saveComment,
-            user: await User.findById(req.user._id), // user autenticado y actualizado con id del comentario
-          });
-        } catch (error) {
-          res.status(404).json({
-            error: "Error al actualizar la pagina de feedlogic y el usuario",
-            message: error.message,
-          }) && next(error);
-        }
-      }
+    }
+
+    // Si se encontró un enigma
+    if (findEnigma) {
+      const saveComment = await createEnigmaComment(req, res, req.user._id, id);
+
+      // Devolver la respuesta con el comentario creado y el usuario actualizado
+      return res.status(200).json({
+        create: true,
+        saveComment,
+        user: await User.findById(req.user._id),
+      });
     }
   } catch (error) {
-    res.status(404).json({
+    // Manejar errores
+    return res.status(500).json({
       error: "Error general al crear comentario",
       message: error.message,
-    }) && next(error);
+    });
   }
 };
+
 //----------------------------------------(Get all Comments)------------------------------------------------------------------------
 
 const getAllComments = async (req, res) => {
@@ -168,8 +237,13 @@ const deleteComment = async (req, res, next) => {
     await FeedLogic.updateMany({
       $pull: { comments: idComment },
     });
+    await Enigma.updateMany({
+      $pull: { comments: idComment },
+    });
     // Eliminar el comentario
     await Comment.findByIdAndDelete(idComment);
+    // Eliminar el comentario
+    await Enigma.findByIdAndDelete(idComment);
 
     return res.status(200).json({
       message: "Comentario eliminado correctamente",
