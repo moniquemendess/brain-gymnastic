@@ -12,6 +12,8 @@ const EnigmaSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     dayLogic: { type: mongoose.Schema.Types.ObjectId, ref: "DayLogic" },
   },
   { timestamps: true }

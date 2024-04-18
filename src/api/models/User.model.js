@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema(
     userLikedComments: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Comment" },
     ],
-    userLikedLogic: [{ type: mongoose.Schema.Types.ObjectId, ref: "DayLogic" }],
+    userLikedEnigmas: [{ type: mongoose.Schema.Types.ObjectId, ref: "Enigma" }],
     userLikedFeedLogic: [
       { type: mongoose.Schema.Types.ObjectId, ref: "feedLogic" },
     ],

@@ -1,8 +1,10 @@
 //------------------------------------(Importaciones)------------------------------------------------------------------
 
+const { checktoken } = require("../../middleware/auth.middleware");
 const {
   getByIdEnigma,
   getAllEnigma,
+  LikedEnigma,
 } = require("../controllers/Enigmas.controllers");
 
 //----------------------------(Configuración de la Rutas con Express)----------------------------------------------------
@@ -17,6 +19,8 @@ EnigmaRoutes.get("/byIdEnigma/:id", getByIdEnigma);
 EnigmaRoutes.get("/all", getAllEnigma);
 
 //----------------------------------------(Rutas Privadas)-----------------------------------------------------------------------
+
+EnigmaRoutes.patch("/like/:idEnigma", checktoken, LikedEnigma);
 
 // -----------------------------------(Exportaciones)-------------------------------------------------------------------
 
