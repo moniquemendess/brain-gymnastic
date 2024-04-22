@@ -1,6 +1,6 @@
 //------------------------------------(Importaciones)------------------------------------------------------------------
 
-const { checktoken } = require("../../middleware/auth.middleware");
+//const { checktoken } = require("../../middleware/auth.middleware");
 const {
   getAllUsers,
   getByIdUser,
@@ -22,7 +22,7 @@ UserRoutes.post("/login", login);
 
 //----------------------------------------(Rutas Privadas)--------------------------------------------------------------
 
-UserRoutes.get("/getByIdUser/:id", checktoken, getByIdUser);
+UserRoutes.get("/getByIdUser/:id", getByIdUser);
 
 // -----------------------------------(Exportaciones)-------------------------------------------------------------------
 

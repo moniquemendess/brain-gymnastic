@@ -29,8 +29,8 @@ FeedLogicRoutes.post(
   checktoken,
   createFeedLogic
 );
-FeedLogicRoutes.delete("/deleteFeed/:id", checktoken, deleteFeedLogic);
-FeedLogicRoutes.patch("/likedFeed/:idFeed", checktoken, LikedFeed);
+FeedLogicRoutes.delete("/deleteFeed/:id", deleteFeedLogic);
+FeedLogicRoutes.patch("/likedFeed/:idFeed", LikedFeed);
 FeedLogicRoutes.patch("/update/:id", upload.single("image"), updateFeed);
 
 // -----------------------------------(Exportaciones)-------------------------------------------------------------------
