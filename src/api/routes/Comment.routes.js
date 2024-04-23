@@ -24,8 +24,8 @@ CommentRoutes.get("/idComments/:id", getByIdComment);
 
 CommentRoutes.post("/createComments/:id", checktoken, createComments);
 
-CommentRoutes.delete("/deleteComment/:idComment", checktoken, deleteComment);
-CommentRoutes.patch("/likeComment/:idComment", checktoken, likeComment);
+CommentRoutes.delete("/deleteComment/:idComment", deleteComment);
+CommentRoutes.patch("/likeComment/:idComment", likeComment);
 
 // -----------------------------------(Exportaciones)-------------------------------------------------------------------
 
